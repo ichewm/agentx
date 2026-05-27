@@ -150,12 +150,14 @@ func runBenchmark(root string) error {
 		benchCodexMissingSkillBlocks,
 		benchRuntimeGapBlocks,
 		benchRuntimeManualPasses,
+		benchRuntimeTargetIsolation,
 		benchSafetyBlocked,
 		benchCursorRulePasses,
 		benchBaselineDeviationRecorded,
 		benchBaselineDeviationMissingBlocks,
 		benchInstallRequiresConfirmation,
 		benchPlanBlockedArtifact,
+		benchInstallPlanManualRequirements,
 		benchDangerousDestinationBlocks,
 		benchRepoSubdirDestinationBlocks,
 		benchInvalidCapabilityIDBlocks,
@@ -404,6 +406,30 @@ func benchRuntimeManualPasses(root string) benchResult {
 	return expectReady(name, "ready", result, true)
 }
 
+func benchRuntimeTargetIsolation(root string) benchResult {
+	name := "runtime-target-isolation"
+	capability := "bench-runtime-target-isolation"
+	cleanupCapability(root, capability)
+	defer cleanupCapability(root, capability)
+	if err := writeBenchCapability(root, capability, "codex", "blocked", "", false, true, false); err != nil {
+		return benchErr(name, "codex blocked and claude-code ready", err)
+	}
+	if err := writeBenchCapability(root, capability, "claude-code", "passed", "", false, true, false); err != nil {
+		return benchErr(name, "codex blocked and claude-code ready", err)
+	}
+	codex := targetReady(root, capability, "codex")
+	claude := targetReady(root, capability, "claude-code")
+	passed := !codex.Ready && claude.Ready
+	var findings []string
+	if codex.Ready {
+		findings = append(findings, "codex unexpectedly ready")
+	}
+	if !claude.Ready {
+		findings = append(findings, "claude-code unexpectedly blocked: "+strings.Join(claude.Findings, "; "))
+	}
+	return benchResult{Name: name, Expected: "codex blocked and claude-code ready", Passed: passed, Findings: findings}
+}
+
 func benchSafetyBlocked(root string) benchResult {
 	name := "unsafe-safety-review-blocks"
 	capability := "bench-safety"
@@ -482,6 +508,24 @@ func benchPlanBlockedArtifact(root string) benchResult {
 	plan := readText(filepath.Join(capabilityDir(root, capability), "install", "codex.plan.md"))
 	passed := err != nil && strings.Contains(plan, "Status: blocked")
 	return benchResult{Name: name, Expected: "blocked plan", Passed: passed, Error: errString(err)}
+}
+
+func benchInstallPlanManualRequirements(root string) benchResult {
+	name := "install-plan-manual-requirements"
+	capability := "bench-plan-manual"
+	cleanupCapability(root, capability)
+	defer cleanupCapability(root, capability)
+	if err := writeBenchCapability(root, capability, "codex", "passed", "", false, true, false); err != nil {
+		return benchErr(name, "manual requirements included", err)
+	}
+	unknown := "Status: passed\n\n## missing-source-license-file\n\n- Source: source frontmatter\n- Impact: installation\n- Resolution: manual\n- Evidence: license file was not provided.\n- Final artifact impact: install or redistribution requires license confirmation.\n"
+	if err := os.WriteFile(filepath.Join(capabilityDir(root, capability), "reviews", "unknown-resolution.md"), []byte(unknown), 0o644); err != nil {
+		return benchErr(name, "manual requirements included", err)
+	}
+	path, err := planInstall(root, capability, "codex")
+	plan := readText(path)
+	passed := err == nil && strings.Contains(plan, "## Manual Requirements") && strings.Contains(plan, "missing-source-license-file")
+	return benchResult{Name: name, Expected: "manual requirements included", Passed: passed, Error: errString(err)}
 }
 
 func benchDangerousDestinationBlocks(root string) benchResult {
@@ -766,7 +810,7 @@ func benchSkillProgressiveDisclosureQuality(root string) benchResult {
 		"agentx-capability-translator": {"Read every requested `targets/<target-id>/` profile", "official creator baseline"},
 		"agentx-capability-reviewer":   {"reviews/unknown-resolution.md", "Final target files do not contain"},
 		"agentx-safety-auditor":        {"prompt injection", "network exfiltration"},
-		"agentx-benchmark-designer":    {"runtime-benchmark.md", "Final delivery requires"},
+		"agentx-benchmark-designer":    {"runtime-benchmark.<target-id>.md", "Final delivery requires"},
 		"agentx-install-planner":       {"target-ready gate", "Default mode is plan-only"},
 	}
 	var findings []string
@@ -912,7 +956,7 @@ func benchRandomizedTargetReadyFuzz(root string) benchResult {
 		{
 			name: "runtime-blocked",
 			apply: func(capability, target string) error {
-				return os.WriteFile(filepath.Join(capabilityDir(root, capability), "reviews", "runtime-benchmark.md"), []byte("Status: blocked\n"), 0o644)
+				return os.WriteFile(filepath.Join(capabilityDir(root, capability), "reviews", runtimeBenchmarkName(target)), []byte("Status: blocked\n"), 0o644)
 			},
 		},
 		{
@@ -978,6 +1022,10 @@ func targetArtifactPath(root, capability, target string) string {
 	return filepath.Join(capabilityDir(root, capability), "targets", target, "SKILL.md")
 }
 
+func runtimeBenchmarkName(target string) string {
+	return "runtime-benchmark." + target + ".md"
+}
+
 func writeBenchCapability(root, capability, target, runtimeStatus, targetExtra string, baselineDeviation, writeBaselineFile, cursor bool) error {
 	base := capabilityDir(root, capability)
 	reviews := filepath.Join(base, "reviews")
@@ -1018,7 +1066,7 @@ func writeBenchCapability(root, capability, target, runtimeStatus, targetExtra s
 			return err
 		}
 	}
-	if err := os.WriteFile(filepath.Join(reviews, "runtime-benchmark.md"), []byte("Status: "+runtimeStatus+"\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(reviews, runtimeBenchmarkName(target)), []byte("Status: "+runtimeStatus+"\n"), 0o644); err != nil {
 		return err
 	}
 	if err := os.WriteFile(filepath.Join(reviews, "unknown-resolution.md"), []byte("Status: passed\n\n- Source: target profile\n- Resolution: verified\n"), 0o644); err != nil {
@@ -1264,7 +1312,6 @@ func targetReady(root, capability, target string) gateResult {
 		"portability-review.md",
 		"safety-review.md",
 		"benchmark-plan.md",
-		"runtime-benchmark.md",
 		"unknown-resolution.md",
 	}
 	for _, name := range required {
@@ -1285,12 +1332,6 @@ func targetReady(root, capability, target string) gateResult {
 		if hasBlockedStatus(text) {
 			result.add("blocked review: " + name)
 		}
-		if name == "runtime-benchmark.md" {
-			if len(statuses) != 1 || (statuses[0] != "passed" && statuses[0] != "manual-transcript") {
-				result.add("runtime-benchmark.md must be Status: passed or Status: manual-transcript")
-			}
-			continue
-		}
 		if len(statuses) != 1 || statuses[0] != "passed" {
 			result.add(name + " must be Status: passed")
 		}
@@ -1298,6 +1339,29 @@ func targetReady(root, capability, target string) gateResult {
 			if err := scanPlaceholders(path); err != nil {
 				result.add(err.Error())
 			}
+		}
+	}
+
+	runtimeName := runtimeBenchmarkName(target)
+	runtimePath := filepath.Join(reviews, runtimeName)
+	if !exists(runtimePath) {
+		result.add("missing review: " + runtimeName)
+	} else if isSymlink(runtimePath) {
+		result.add("review file must not be a symlink: " + runtimeName)
+	} else {
+		text := readText(runtimePath)
+		statuses := statusValues(text)
+		if len(statuses) != 1 {
+			result.add(runtimeName + " must contain exactly one Status line")
+		}
+		if hasBlockedStatus(text) {
+			result.add("blocked review: " + runtimeName)
+		}
+		if len(statuses) != 1 || (statuses[0] != "passed" && statuses[0] != "manual-transcript") {
+			result.add(runtimeName + " must be Status: passed or Status: manual-transcript")
+		}
+		if err := scanPlaceholders(runtimePath); err != nil {
+			result.add(err.Error())
 		}
 	}
 
@@ -1384,6 +1448,13 @@ func planInstall(root, capability, target string) (string, error) {
 		b.WriteString("## Blocked Evidence\n\n")
 		for _, finding := range result.Findings {
 			fmt.Fprintf(&b, "- %s\n", finding)
+		}
+		b.WriteString("\n")
+	}
+	if entries := manualResolutionEntries(filepath.Join(capabilityDir(root, capability), "reviews", "unknown-resolution.md")); len(entries) > 0 {
+		b.WriteString("## Manual Requirements\n\n")
+		for _, entry := range entries {
+			fmt.Fprintf(&b, "- %s\n", entry)
 		}
 		b.WriteString("\n")
 	}
@@ -1579,6 +1650,50 @@ func baselineDeviationRequired(reviews string) bool {
 		}
 	}
 	return false
+}
+
+func manualResolutionEntries(path string) []string {
+	text := readText(path)
+	if text == "" {
+		return nil
+	}
+	var entries []string
+	current := ""
+	var block []string
+	flush := func() {
+		if current == "" || len(block) == 0 {
+			block = nil
+			return
+		}
+		joined := strings.ToLower(strings.Join(block, "\n"))
+		if strings.Contains(joined, "resolution: manual") {
+			summary := current
+			for _, line := range block {
+				trimmed := strings.TrimSpace(line)
+				lower := strings.ToLower(trimmed)
+				if strings.HasPrefix(lower, "- final artifact impact:") {
+					_, value, _ := strings.Cut(trimmed, ":")
+					summary += " - " + strings.TrimSpace(value)
+					break
+				}
+			}
+			entries = append(entries, summary)
+		}
+		block = nil
+	}
+	for _, line := range strings.Split(text, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "## ") {
+			flush()
+			current = strings.TrimSpace(strings.TrimLeft(trimmed, "# "))
+			continue
+		}
+		if current != "" {
+			block = append(block, line)
+		}
+	}
+	flush()
+	return entries
 }
 
 func scanPlaceholders(root string) error {

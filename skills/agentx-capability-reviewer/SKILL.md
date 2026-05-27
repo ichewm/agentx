@@ -25,6 +25,7 @@ Write or update these files under `.agentx/output/capabilities/<id>/reviews/`:
 - `semantic-review.md`
 - `portability-review.md`
 - `unknown-resolution.md`
+- `runtime-benchmark.<target-id>.md` for each generated target when reviewing target-ready evidence
 - `baseline-deviations.md` when the artifact deviates from an official baseline
 
 ## Review Status

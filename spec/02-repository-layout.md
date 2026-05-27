@@ -100,7 +100,7 @@ Every generated capability must be grouped by capability id.
     portability-review.md
     safety-review.md
     benchmark-plan.md
-    runtime-benchmark.md
+    runtime-benchmark.<target-id>.md
     unknown-resolution.md
     baseline-deviations.md
   install/

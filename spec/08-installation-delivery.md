@@ -42,12 +42,12 @@ Required target-ready evidence:
 - `reviews/portability-review.md` exists and does not mark the artifact blocked.
 - `reviews/safety-review.md` exists and does not mark the artifact blocked.
 - `reviews/benchmark-plan.md` exists.
-- `reviews/runtime-benchmark.md` exists and records either a successful automated runtime benchmark or a manual runtime benchmark transcript.
+- `reviews/runtime-benchmark.<target-id>.md` exists and records either a successful automated runtime benchmark or a manual runtime benchmark transcript for that target.
 - `reviews/unknown-resolution.md` exists and has no unresolved Unknown, TBD, TODO, or blank resolution.
 - `reviews/baseline-deviations.md` exists when the artifact deviates from an official creator baseline.
 - Generated target files under `.agentx/output/capabilities/<id>/targets/<target-id>/` contain no unresolved placeholder terms such as `Unknown`, `TBD`, or `TODO`.
 
-The install planner must output `Blocked` instead of an install-ready plan when any target-ready evidence is missing or blocked.
+The install planner must output `Blocked` instead of an install-ready plan when any target-ready evidence for that target is missing or blocked. A blocked runtime benchmark for another target must not block this target.
 
 The deterministic helper may enforce this gate by checking required files, blocked markers, placeholder terms, and lock metadata. It must not treat those checks as proof of semantic correctness.
 

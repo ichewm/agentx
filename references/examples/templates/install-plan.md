@@ -14,6 +14,8 @@ Status: blocked
 
 ## Backup
 
+## Manual Requirements
+
 ## Verification
 
 ## Rollback

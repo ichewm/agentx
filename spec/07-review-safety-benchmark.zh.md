@@ -79,13 +79,13 @@ Benchmark plan 必须人可读，并能被自动化复用。
 
 ```text
 .agentx/output/capabilities/<id>/reviews/benchmark-plan.md
-.agentx/output/capabilities/<id>/reviews/runtime-benchmark.md
+.agentx/output/capabilities/<id>/reviews/runtime-benchmark.<target-id>.md
 ```
 
-生成能力必须做 runtime 自动化 benchmark。如果某个 runtime 暂时无法自动化，AgentX 必须在 `runtime-benchmark.md` 中记录 blocking gap，或者在 `runtime-benchmark.md` 中记录人工 runtime benchmark transcript。
+生成能力必须做 runtime 自动化 benchmark。如果某个 runtime 暂时无法自动化，AgentX 必须在该 target 的 `runtime-benchmark.<target-id>.md` 中记录 blocking gap，或者在同一个 target-specific 文件中记录人工 runtime benchmark transcript。
 
-最终交付前，`runtime-benchmark.md` 必须记录成功的自动化 runtime benchmark，或人工 runtime benchmark transcript。如果它只记录 blocking gap，则该 target artifact 不是 target-ready。
+最终交付前，`runtime-benchmark.<target-id>.md` 必须记录成功的自动化 runtime benchmark，或人工 runtime benchmark transcript。如果它只记录 blocking gap，则只有该 target artifact 不是 target-ready。某个 target 的 runtime benchmark blocked 不能阻塞另一个已有 passing runtime evidence 的 target。
 
 Benchmark 自动化不能声称成功，除非它确实运行过目标 runtime 或有记录的官方测试 harness。
 
-如果唯一可用的自动化路径需要启动外部 AI runtime CLI，或创建已认证 runtime environment，AI 必须先询问。没有明确批准时，写入 `Status: blocked`，并记录准确的 user-confirmation gap。
+如果唯一可用的自动化路径需要启动外部 AI runtime CLI，或创建已认证 runtime environment，AI 必须先询问。没有明确批准时，必须在该 target 的 runtime benchmark 文件中写入 `Status: blocked`，并记录准确的 user-confirmation gap。

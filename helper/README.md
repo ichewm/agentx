@@ -47,7 +47,7 @@ The helper checks deterministic evidence only:
 - Required workflow files exist: `intake.md`, `open-questions.md`, and `brief.md`.
 - Required review files exist.
 - Required final review files contain exactly one status line, and that line is `Status: passed`.
-- `runtime-benchmark.md` is `Status: passed` or `Status: manual-transcript`.
+- `runtime-benchmark.<target-id>.md` is `Status: passed` or `Status: manual-transcript` for the requested target.
 - `unknown-resolution.md` has no unresolved resolution.
 - `baseline-deviations.md` exists when any review records `Baseline deviation: yes`.
 - Final review files and generated target files contain no `Unknown`, `TBD`, or `TODO` placeholder text, except `unknown-resolution.md` may name an original unknown source fact while recording a resolved status.
@@ -55,3 +55,5 @@ The helper checks deterministic evidence only:
 - Target artifacts match the target-native package shape.
 
 Passing this gate does not prove semantic correctness. The AI review files are still required authority for meaning, safety, routing quality, and conversion loss.
+
+Install plans include manual requirements from `unknown-resolution.md` entries marked `Resolution: manual`.

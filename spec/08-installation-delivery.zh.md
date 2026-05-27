@@ -42,12 +42,12 @@ AgentX 不能在 target artifact 通过 target-ready gate 前产出 install-read
 - `reviews/portability-review.md` 存在，并且没有把产物标记为 blocked。
 - `reviews/safety-review.md` 存在，并且没有把产物标记为 blocked。
 - `reviews/benchmark-plan.md` 存在。
-- `reviews/runtime-benchmark.md` 存在，并且记录成功的自动化 runtime benchmark 或人工 runtime benchmark transcript。
+- `reviews/runtime-benchmark.<target-id>.md` 存在，并且记录该 target 的成功自动化 runtime benchmark 或人工 runtime benchmark transcript。
 - `reviews/unknown-resolution.md` 存在，并且没有未解决的 Unknown、TBD、TODO 或空白 resolution。
 - 当产物偏离官方 creator baseline 时，`reviews/baseline-deviations.md` 必须存在。
 - `.agentx/output/capabilities/<id>/targets/<target-id>/` 下的生成目标文件不能包含 `Unknown`、`TBD` 或 `TODO` 这类未解决占位词。
 
-如果任何 target-ready evidence 缺失或被标记为 blocked，install planner 必须输出 `Blocked`，而不是 install-ready plan。
+如果该 target 的任何 target-ready evidence 缺失或被标记为 blocked，install planner 必须输出 `Blocked`，而不是 install-ready plan。其他 target 的 runtime benchmark blocked 不能阻塞当前 target。
 
 确定性 helper 可以通过检查必需文件、blocked 标记、占位词和 lock metadata 来执行这个 gate。但这些检查不能被当作语义正确性的证明。
 

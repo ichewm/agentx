@@ -17,7 +17,7 @@ Write:
 
 ```text
 .agentx/output/capabilities/<id>/reviews/benchmark-plan.md
-.agentx/output/capabilities/<id>/reviews/runtime-benchmark.md
+.agentx/output/capabilities/<id>/reviews/runtime-benchmark.<target-id>.md
 ```
 
 ## Benchmark Plan Sections
@@ -34,7 +34,7 @@ Write:
 
 ## Runtime Benchmark Status
 
-`runtime-benchmark.md` must use one status line:
+Each `runtime-benchmark.<target-id>.md` must use one status line:
 
 ```text
 Status: passed
@@ -42,7 +42,7 @@ Status: manual-transcript
 Status: blocked
 ```
 
-Final delivery requires `passed` or `manual-transcript`. If automation is unavailable and no manual transcript exists, record `Status: blocked` and the blocking gap.
+Final delivery requires the requested target's runtime benchmark file to be `passed` or `manual-transcript`. If automation is unavailable and no manual transcript exists, record `Status: blocked` and the blocking gap in that target-specific file. A blocked runtime benchmark for one target must not block another target with passing runtime evidence.
 
 ## Runtime CLI Safety
 
@@ -50,4 +50,4 @@ Do not execute external AI runtime CLIs without explicit user confirmation for t
 
 Do not install temporary skills into real user runtime directories, create or alter authenticated runtime homes, or trigger runtime update/download flows without explicit user confirmation.
 
-When confirmation is missing, write `Status: blocked` in `runtime-benchmark.md` and record the exact confirmation gap instead of running the CLI.
+When confirmation is missing, write `Status: blocked` in `runtime-benchmark.<target-id>.md` and record the exact confirmation gap instead of running the CLI.

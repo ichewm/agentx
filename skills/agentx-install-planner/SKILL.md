@@ -13,9 +13,10 @@ Before producing an install-ready plan:
 
 1. Check the target-ready gate from `spec/08-installation-delivery.md`.
 2. Require `reviews/unknown-resolution.md`.
-3. Refuse installation planning if any required review is missing, blocked, or contains unresolved `Unknown`, `TBD`, or `TODO` placeholders.
-4. Output `Blocked` with exact missing evidence instead of a plan when the artifact is not target-ready.
-5. Never treat helper verification as semantic proof that the capability will be used correctly by the runtime.
+3. Require the target-specific `reviews/runtime-benchmark.<target-id>.md`; do not use another target's runtime benchmark status.
+4. Refuse installation planning if any required review for the requested target is missing, blocked, or contains unresolved `Unknown`, `TBD`, or `TODO` placeholders.
+5. Output `Blocked` with exact missing evidence instead of a plan when the artifact is not target-ready.
+6. Never treat helper verification as semantic proof that the capability will be used correctly by the runtime.
 
 ## Install Plan
 
@@ -52,6 +53,8 @@ Status: blocked | ready
 ```
 
 If blocked, include exact missing or blocked target-ready evidence and do not include executable install commands as approved actions.
+
+If `unknown-resolution.md` contains entries with `Resolution: manual` that affect installation, redistribution, setup, or benchmark validity, include them under `## Manual Requirements` in the install plan.
 
 ## Execution Boundary
 

@@ -36,6 +36,7 @@ AgentX uses workflow-level benchmarks, not only output scoring.
 - target-native package shape mismatches block finalization
 - runtime benchmark blocking gap blocks finalization
 - manual runtime transcript allows finalization
+- runtime benchmark evidence is target-specific, so one blocked target does not block another passing target
 - unsafe safety review blocks finalization
 - Cursor rule artifact passes without fake `SKILL.md`
 - baseline deviation marker requires `baseline-deviations.md`
@@ -46,6 +47,7 @@ AgentX uses workflow-level benchmarks, not only output scoring.
 - ready artifact export copies files and writes a lock record
 - rollback restores the latest lock-recorded backup
 - ready artifact creates a plan without executing installation
+- install plans include manual requirements from `unknown-resolution.md`
 - every AgentX meta-skill has clear frontmatter, an actionable operational section, and authoritative spec references
 - the workbench skill stays a lightweight router instead of duplicating specialized instructions
 - translation coverage includes preserved, adapted, degraded, dropped, manual setup, and risk reporting

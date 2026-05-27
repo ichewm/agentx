@@ -79,13 +79,13 @@ Every generated capability must include:
 
 ```text
 .agentx/output/capabilities/<id>/reviews/benchmark-plan.md
-.agentx/output/capabilities/<id>/reviews/runtime-benchmark.md
+.agentx/output/capabilities/<id>/reviews/runtime-benchmark.<target-id>.md
 ```
 
-Runtime automation is mandatory for generated capabilities. If a runtime cannot be automated yet, AgentX must record the blocking gap in `runtime-benchmark.md` or record a manual runtime benchmark transcript in `runtime-benchmark.md`.
+Runtime automation is mandatory for generated capabilities. If a runtime cannot be automated yet, AgentX must record the blocking gap in that target's `runtime-benchmark.<target-id>.md` or record a manual runtime benchmark transcript in that same target-specific file.
 
-For final delivery, `runtime-benchmark.md` must record either a successful automated runtime benchmark or a manual runtime benchmark transcript. If it records only a blocking gap, the target artifact is not target-ready.
+For final delivery, `runtime-benchmark.<target-id>.md` must record either a successful automated runtime benchmark or a manual runtime benchmark transcript. If it records only a blocking gap, only that target artifact is not target-ready. A blocked runtime benchmark for one target must not block another target with passing runtime evidence.
 
 Benchmark automation must not claim success unless it actually ran against the target runtime or a documented official test harness.
 
-If the only available automation path requires launching an external AI runtime CLI or creating an authenticated runtime environment, the AI must ask first. Without explicit approval, record `Status: blocked` with the exact user-confirmation gap.
+If the only available automation path requires launching an external AI runtime CLI or creating an authenticated runtime environment, the AI must ask first. Without explicit approval, record `Status: blocked` in that target's runtime benchmark file with the exact user-confirmation gap.

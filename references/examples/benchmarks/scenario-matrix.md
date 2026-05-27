@@ -21,9 +21,10 @@
 
 ## Runtime Benchmark
 
-- `runtime-automated-passes`: `runtime-benchmark.md` has `Status: passed`.
-- `runtime-manual-passes`: `runtime-benchmark.md` has `Status: manual-transcript`.
-- `runtime-gap-blocks`: `runtime-benchmark.md` has `Status: blocked`.
+- `runtime-automated-passes`: `runtime-benchmark.<target-id>.md` has `Status: passed`.
+- `runtime-manual-passes`: `runtime-benchmark.<target-id>.md` has `Status: manual-transcript`.
+- `runtime-gap-blocks`: `runtime-benchmark.<target-id>.md` has `Status: blocked`.
+- `runtime-target-isolation`: one target's blocked runtime benchmark does not block another target with passing runtime evidence.
 
 ## Baseline
 
@@ -35,6 +36,7 @@
 - `install-without-confirmation-blocks`: helper refuses delivery without `--yes`.
 - `plan-blocked-artifact`: helper writes blocked plan instead of install-ready plan.
 - `plan-ready-artifact`: helper writes a ready plan for a target-ready artifact without executing installation.
+- `install-plan-manual-requirements`: helper includes `Resolution: manual` install requirements in generated plans.
 - `dangerous-destination-blocks`: helper refuses repository root, home, filesystem root, `.agentx`, and source-overlapping destinations.
 - `repo-subdir-destination-blocks`: helper refuses destinations inside the AgentX repository.
 - `invalid-capability-id-blocks`: helper refuses capability ids that are paths or parent traversal.

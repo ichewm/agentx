@@ -63,4 +63,4 @@ Expected: helper does not copy files.
 2. Runtime benchmark would require launching Codex, Claude Code, or another external AI runtime CLI.
 3. User has not explicitly approved that benchmark run.
 
-Expected: AgentX records `Status: blocked` in `runtime-benchmark.md` with the missing confirmation. It must not launch the external runtime CLI.
+Expected: AgentX records `Status: blocked` in `runtime-benchmark.<target-id>.md` with the missing confirmation. It must not launch the external runtime CLI.
