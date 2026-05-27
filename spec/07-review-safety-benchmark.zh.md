@@ -57,6 +57,8 @@ Level 2：Runtime benchmark
 - 手动或通过支持的自动化运行目标 runtime。
 - 观察 runtime 是否选择能力。
 - 记录行为是否遵守产物。
+- 外部 AI runtime CLI，包括 Codex、Claude Code、Copilot、Cursor、OpenClaw 和 Hermes，在没有用户明确确认本次 benchmark 前，不能自动执行。
+- Runtime automation 在没有用户明确确认前，不能把临时 skill 安装到真实用户 runtime 目录，不能创建或修改已认证 runtime home，也不能触发 runtime update/download 流程。
 
 Level 3：跨 target benchmark
 
@@ -85,3 +87,5 @@ Benchmark plan 必须人可读，并能被自动化复用。
 最终交付前，`runtime-benchmark.md` 必须记录成功的自动化 runtime benchmark，或人工 runtime benchmark transcript。如果它只记录 blocking gap，则该 target artifact 不是 target-ready。
 
 Benchmark 自动化不能声称成功，除非它确实运行过目标 runtime 或有记录的官方测试 harness。
+
+如果唯一可用的自动化路径需要启动外部 AI runtime CLI，或创建已认证 runtime environment，AI 必须先询问。没有明确批准时，写入 `Status: blocked`，并记录准确的 user-confirmation gap。

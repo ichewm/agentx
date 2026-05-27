@@ -57,6 +57,8 @@ Level 2: Runtime benchmark
 - Run target runtime manually or through supported automation.
 - Observe whether the runtime selects the capability.
 - Record whether behavior follows the artifact.
+- External AI runtime CLIs, including Codex, Claude Code, Copilot, Cursor, OpenClaw, and Hermes, must not be executed automatically without explicit user confirmation for that benchmark run.
+- Runtime automation must not install temporary skills into real user runtime directories, create or alter authenticated runtime homes, or trigger runtime update/download flows without explicit user confirmation.
 
 Level 3: Cross-target benchmark
 
@@ -85,3 +87,5 @@ Runtime automation is mandatory for generated capabilities. If a runtime cannot 
 For final delivery, `runtime-benchmark.md` must record either a successful automated runtime benchmark or a manual runtime benchmark transcript. If it records only a blocking gap, the target artifact is not target-ready.
 
 Benchmark automation must not claim success unless it actually ran against the target runtime or a documented official test harness.
+
+If the only available automation path requires launching an external AI runtime CLI or creating an authenticated runtime environment, the AI must ask first. Without explicit approval, record `Status: blocked` with the exact user-confirmation gap.

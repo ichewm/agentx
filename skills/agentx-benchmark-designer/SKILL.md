@@ -43,3 +43,11 @@ Status: blocked
 ```
 
 Final delivery requires `passed` or `manual-transcript`. If automation is unavailable and no manual transcript exists, record `Status: blocked` and the blocking gap.
+
+## Runtime CLI Safety
+
+Do not execute external AI runtime CLIs without explicit user confirmation for that benchmark run. This includes Codex, Claude Code, Copilot, Cursor, OpenClaw, Hermes, and future runtime CLIs.
+
+Do not install temporary skills into real user runtime directories, create or alter authenticated runtime homes, or trigger runtime update/download flows without explicit user confirmation.
+
+When confirmation is missing, write `Status: blocked` in `runtime-benchmark.md` and record the exact confirmation gap instead of running the CLI.

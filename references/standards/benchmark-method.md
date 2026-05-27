@@ -51,6 +51,7 @@ AgentX uses workflow-level benchmarks, not only output scoring.
 - translation coverage includes preserved, adapted, degraded, dropped, manual setup, and risk reporting
 - capability architecture coverage includes multi-turn intake, explicit closure, open questions, and decision points before final generation
 - fixed-seed randomized target-ready fuzzing combines edge cases so gate behavior remains stable under mixed invalid states
+- external AI runtime CLI benchmarks require explicit user confirmation before execution
 
 ## Real Corpus Strategy
 

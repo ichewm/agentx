@@ -33,6 +33,7 @@ Do you want to add more input? Reply "no", "done", "不", or "不需要" to clos
 
 - Do not generate final target artifacts until intake is closed and the user confirms generation, unless the user explicitly asks for an early draft.
 - If the user asks for installation, route to `agentx-install-planner`; do not execute installation directly.
+- Do not execute external AI runtime CLIs for runtime benchmarks unless the user explicitly confirms that benchmark run.
 
 ## Workflow Map
 
