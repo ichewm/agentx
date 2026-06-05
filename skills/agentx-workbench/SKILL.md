@@ -25,6 +25,7 @@ Use this entry skill when the user asks to use AgentX, create a capability, tran
 - Use English files as authority: `spec/*.md`, `skills/*/SKILL.md`, `targets/*/*.md`, `models/*/*.md`, and `references/**/*.md`.
 - Use `.zh.md` files only for human review.
 - Create or reuse `.agentx/output/capabilities/<id>/` for every capability task.
+- Ensure every capability workspace contains `intake.md`, `open-questions.md`, and `brief.md`; write `open-questions.md` even when there are no open questions.
 - After every intake message, summarize what changed and ask:
 
 ```text

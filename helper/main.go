@@ -158,6 +158,8 @@ func runBenchmark(root string) error {
 		benchInstallRequiresConfirmation,
 		benchPlanBlockedArtifact,
 		benchInstallPlanManualRequirements,
+		benchInstallPlanManualRequirementsTargetScoped,
+		benchSkillPackageIDMayDifferFromCapability,
 		benchDangerousDestinationBlocks,
 		benchRepoSubdirDestinationBlocks,
 		benchInvalidCapabilityIDBlocks,
@@ -526,6 +528,50 @@ func benchInstallPlanManualRequirements(root string) benchResult {
 	plan := readText(path)
 	passed := err == nil && strings.Contains(plan, "## Manual Requirements") && strings.Contains(plan, "missing-source-license-file")
 	return benchResult{Name: name, Expected: "manual requirements included", Passed: passed, Error: errString(err)}
+}
+
+func benchInstallPlanManualRequirementsTargetScoped(root string) benchResult {
+	name := "install-plan-manual-requirements-target-scoped"
+	capability := "bench-plan-manual-scoped"
+	cleanupCapability(root, capability)
+	defer cleanupCapability(root, capability)
+	if err := writeBenchCapability(root, capability, "codex", "passed", "", false, true, false); err != nil {
+		return benchErr(name, "manual requirements scoped", err)
+	}
+	unknown := "Status: passed\n\n" +
+		"## shared-license\n\n- Resolution: manual\n- Final artifact impact: license confirmation required.\n\n" +
+		"## codex-runtime-benchmark\n\n- Resolution: manual\n- Final artifact impact: Codex runtime benchmark approval required.\n\n" +
+		"## claude-code-runtime-benchmark\n\n- Resolution: manual\n- Final artifact impact: Claude Code runtime benchmark approval required.\n"
+	if err := os.WriteFile(filepath.Join(capabilityDir(root, capability), "reviews", "unknown-resolution.md"), []byte(unknown), 0o644); err != nil {
+		return benchErr(name, "manual requirements scoped", err)
+	}
+	path, err := planInstall(root, capability, "codex")
+	plan := readText(path)
+	passed := err == nil &&
+		strings.Contains(plan, "shared-license") &&
+		strings.Contains(plan, "codex-runtime-benchmark") &&
+		!strings.Contains(plan, "claude-code-runtime-benchmark")
+	return benchResult{Name: name, Expected: "manual requirements scoped", Passed: passed, Error: errString(err)}
+}
+
+func benchSkillPackageIDMayDifferFromCapability(root string) benchResult {
+	name := "skill-package-id-may-differ-from-capability"
+	capability := "bench-package-id"
+	skillID := "custom-skill-id"
+	cleanupCapability(root, capability)
+	defer cleanupCapability(root, capability)
+	if err := writeBenchCapability(root, capability, "codex", "passed", "", false, true, false); err != nil {
+		return benchErr(name, "ready", err)
+	}
+	targetDir := targetRoot(root, capability, "codex")
+	if err := os.Rename(filepath.Join(targetDir, capability), filepath.Join(targetDir, skillID)); err != nil {
+		return benchErr(name, "ready", err)
+	}
+	result := targetReady(root, capability, "codex")
+	planPath, err := planInstall(root, capability, "codex")
+	plan := readText(planPath)
+	passed := result.Ready && err == nil && strings.Contains(plan, filepath.ToSlash(filepath.Join("targets", "codex", skillID)))
+	return benchResult{Name: name, Expected: "ready", Passed: passed, Error: errString(err), Findings: result.Findings}
 }
 
 func benchDangerousDestinationBlocks(root string) benchResult {
@@ -1019,7 +1065,47 @@ func targetArtifactPath(root, capability, target string) string {
 	if target == "cursor" {
 		return filepath.Join(capabilityDir(root, capability), "targets", target, ".cursor", "rules", "bench.mdc")
 	}
-	return filepath.Join(capabilityDir(root, capability), "targets", target, "SKILL.md")
+	return filepath.Join(targetPackageRoot(root, capability, target), "SKILL.md")
+}
+
+func targetRoot(root, capability, target string) string {
+	return filepath.Join(capabilityDir(root, capability), "targets", target)
+}
+
+func targetPackageRoot(root, capability, target string) string {
+	switch target {
+	case "codex", "claude-code", "openclaw", "hermes":
+		return filepath.Join(targetRoot(root, capability, target), capability)
+	default:
+		return targetRoot(root, capability, target)
+	}
+}
+
+func resolveTargetPackageRoot(root, capability, target string) (string, error) {
+	targetDir := targetRoot(root, capability, target)
+	switch target {
+	case "codex", "claude-code", "openclaw", "hermes":
+		entries, err := os.ReadDir(targetDir)
+		if err != nil {
+			return "", err
+		}
+		var matches []string
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+			packageDir := filepath.Join(targetDir, entry.Name())
+			if exists(filepath.Join(packageDir, "SKILL.md")) {
+				matches = append(matches, packageDir)
+			}
+		}
+		if len(matches) != 1 {
+			return "", errors.New(target + " target artifact must include exactly one <skill-id>/SKILL.md package")
+		}
+		return matches[0], nil
+	default:
+		return targetDir, nil
+	}
 }
 
 func runtimeBenchmarkName(target string) string {
@@ -1029,9 +1115,9 @@ func runtimeBenchmarkName(target string) string {
 func writeBenchCapability(root, capability, target, runtimeStatus, targetExtra string, baselineDeviation, writeBaselineFile, cursor bool) error {
 	base := capabilityDir(root, capability)
 	reviews := filepath.Join(base, "reviews")
-	targetDir := filepath.Join(base, "targets", target)
+	targetDir := targetPackageRoot(root, capability, target)
 	if cursor {
-		targetDir = filepath.Join(targetDir, ".cursor", "rules")
+		targetDir = filepath.Join(targetRoot(root, capability, target), ".cursor", "rules")
 	}
 	if err := os.MkdirAll(base, 0o755); err != nil {
 		return err
@@ -1298,7 +1384,7 @@ func targetReady(root, capability, target string) gateResult {
 		return result
 	}
 	base := capabilityDir(root, capability)
-	targetDir := filepath.Join(base, "targets", target)
+	targetDir := targetRoot(root, capability, target)
 	reviews := filepath.Join(base, "reviews")
 
 	for _, name := range []string{"intake.md", "open-questions.md", "brief.md"} {
@@ -1451,7 +1537,7 @@ func planInstall(root, capability, target string) (string, error) {
 		}
 		b.WriteString("\n")
 	}
-	if entries := manualResolutionEntries(filepath.Join(capabilityDir(root, capability), "reviews", "unknown-resolution.md")); len(entries) > 0 {
+	if entries := manualResolutionEntries(filepath.Join(capabilityDir(root, capability), "reviews", "unknown-resolution.md"), target); len(entries) > 0 {
 		b.WriteString("## Manual Requirements\n\n")
 		for _, entry := range entries {
 			fmt.Fprintf(&b, "- %s\n", entry)
@@ -1459,7 +1545,15 @@ func planInstall(root, capability, target string) (string, error) {
 		b.WriteString("\n")
 	}
 	b.WriteString("## Source Artifact\n\n")
-	fmt.Fprintf(&b, "`.agentx/output/capabilities/%s/targets/%s/`\n\n", capability, target)
+	src, err := resolveTargetPackageRoot(root, capability, target)
+	if err != nil {
+		src = targetRoot(root, capability, target)
+	}
+	srcRel, err := filepath.Rel(root, src)
+	if err != nil {
+		srcRel = filepath.Join(".agentx", "output", "capabilities", capability, "targets", target)
+	}
+	fmt.Fprintf(&b, "`%s`\n\n", filepath.ToSlash(srcRel))
 	b.WriteString("## Target Runtime\n\n")
 	fmt.Fprintf(&b, "%s\n\n", target)
 	b.WriteString("## Method\n\nplan-only\n\n## Destination\n\nRequires user confirmation.\n\n## Changes\n\nNo filesystem changes in plan mode.\n\n## Backup\n\nRequired before install.\n\n## Verification\n\nRun `agentx verify` after delivery.\n\n## Rollback\n\nUse backup created during install.\n\n## User Confirmation\n\nRequired before install or export.\n")
@@ -1489,7 +1583,10 @@ func deliver(root, capability, target, dest string, yes bool, method string) err
 	if !yes {
 		return errors.New(method + " requires explicit --yes confirmation")
 	}
-	src := filepath.Join(capabilityDir(root, capability), "targets", target)
+	src, err := resolveTargetPackageRoot(root, capability, target)
+	if err != nil {
+		return err
+	}
 	if err := validateDestination(root, src, dest); err != nil {
 		return err
 	}
@@ -1562,7 +1659,11 @@ func rollback(root, capability, target string, yes bool) error {
 	if record.Backup == "" {
 		return errors.New("no backups found")
 	}
-	if err := validateDestination(root, filepath.Join(capabilityDir(root, capability), "targets", target), record.Destination); err != nil {
+	src, err := resolveTargetPackageRoot(root, capability, target)
+	if err != nil {
+		return err
+	}
+	if err := validateDestination(root, src, record.Destination); err != nil {
 		return err
 	}
 	if !exists(record.Backup) {
@@ -1652,7 +1753,7 @@ func baselineDeviationRequired(reviews string) bool {
 	return false
 }
 
-func manualResolutionEntries(path string) []string {
+func manualResolutionEntries(path, target string) []string {
 	text := readText(path)
 	if text == "" {
 		return nil
@@ -1667,6 +1768,11 @@ func manualResolutionEntries(path string) []string {
 		}
 		joined := strings.ToLower(strings.Join(block, "\n"))
 		if strings.Contains(joined, "resolution: manual") {
+			scopeText := strings.ToLower(current + "\n" + strings.Join(block, "\n"))
+			if mentionsOtherTarget(scopeText, target) {
+				block = nil
+				return
+			}
 			summary := current
 			for _, line := range block {
 				trimmed := strings.TrimSpace(line)
@@ -1694,6 +1800,28 @@ func manualResolutionEntries(path string) []string {
 	}
 	flush()
 	return entries
+}
+
+func mentionsOtherTarget(text, target string) bool {
+	aliases := map[string][]string{
+		"codex":       {"codex"},
+		"claude-code": {"claude-code", "claude code"},
+		"copilot":     {"copilot"},
+		"cursor":      {"cursor"},
+		"openclaw":    {"openclaw", "open claw"},
+		"hermes":      {"hermes"},
+	}
+	for id, names := range aliases {
+		if id == target {
+			continue
+		}
+		for _, name := range names {
+			if strings.Contains(text, name) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func scanPlaceholders(root string) error {
@@ -1752,8 +1880,18 @@ func isSymlink(path string) bool {
 func validateTargetShape(targetDir, target string) error {
 	switch target {
 	case "codex", "claude-code", "openclaw", "hermes":
-		if !exists(filepath.Join(targetDir, "SKILL.md")) {
-			return errors.New(target + " target artifact must include SKILL.md")
+		entries, err := os.ReadDir(targetDir)
+		if err != nil {
+			return errors.New(target + " target artifact must include exactly one <skill-id>/SKILL.md package")
+		}
+		count := 0
+		for _, entry := range entries {
+			if entry.IsDir() && exists(filepath.Join(targetDir, entry.Name(), "SKILL.md")) {
+				count++
+			}
+		}
+		if count != 1 {
+			return errors.New(target + " target artifact must include exactly one <skill-id>/SKILL.md package")
 		}
 	case "cursor":
 		rulesDir := filepath.Join(targetDir, ".cursor", "rules")

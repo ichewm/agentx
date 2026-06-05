@@ -30,7 +30,13 @@ Generated artifacts live first in:
 .agentx/output/capabilities/<id>/targets/<target-id>/
 ```
 
-AgentX installs or exports from that location.
+AgentX installs or exports from the target-native package root inside that location. For skill-package targets, that root is usually:
+
+```text
+.agentx/output/capabilities/<id>/targets/<target-id>/<skill-id>/
+```
+
+The helper must copy the package root itself, not the parent target directory, so the destination receives the runtime-native files directly.
 
 ## Target-Ready Gate
 

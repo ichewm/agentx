@@ -30,7 +30,13 @@ AgentX helper 只负责：
 .agentx/output/capabilities/<id>/targets/<target-id>/
 ```
 
-AgentX 从这个位置安装或导出。
+AgentX 从这个位置内部的 target-native package root 安装或导出。对于 skill-package targets，这个 root 通常是：
+
+```text
+.agentx/output/capabilities/<id>/targets/<target-id>/<skill-id>/
+```
+
+helper 必须复制 package root 本身，而不是复制上层 target directory，这样 destination 会直接收到 runtime-native 文件。
 
 ## Target-Ready Gate
 

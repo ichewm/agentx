@@ -25,7 +25,7 @@ Follow `spec/05-capability-brief.md`.
 
 3. Record every user-provided requirement, document, example, constraint, path, or URL in `intake.md`.
 4. Store large pasted material or fetched files under `sources/`.
-5. Maintain `open-questions.md`, but do not force answers during intake unless the next source cannot be understood.
+5. Maintain `open-questions.md`, but do not force answers during intake unless the next source cannot be understood. Create this file even when there are no open questions.
 6. After each intake turn, summarize changes and ask whether the user wants to add more input.
 7. After intake closes, summarize intent, sources, and decision points before generating final artifacts.
 8. Write `brief.md` using the required sections from `spec/05-capability-brief.md`.

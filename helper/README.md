@@ -57,3 +57,5 @@ The helper checks deterministic evidence only:
 Passing this gate does not prove semantic correctness. The AI review files are still required authority for meaning, safety, routing quality, and conversion loss.
 
 Install plans include manual requirements from `unknown-resolution.md` entries marked `Resolution: manual`.
+
+For skill-package targets such as Codex, Claude Code, OpenClaw, and Hermes, the target-native package root is `.agentx/output/capabilities/<capability>/targets/<target>/<skill-id>/`. Delivery copies that package root, so the destination receives `SKILL.md` directly rather than an extra nested directory.

@@ -14,12 +14,14 @@ Follow `spec/06-translation-workflow.md` and the baseline creator rules in `spec
 1. Accept source input as a path, URL, repository, archive, directory, or pasted content.
 2. Inspect readable paths and URLs directly; do not ask the user to paste locally readable files.
 3. Create or reuse `.agentx/output/capabilities/<id>/`.
-4. Store source provenance and summaries under `intake.md` and `sources/`.
-5. Identify source runtime, source artifact types, scripts, references, commands, tools, rules, assets, and install assumptions.
-6. Create or update `brief.md` with a capability map and conversion status for each mapped item.
-7. Read every requested `targets/<target-id>/` profile before generating artifacts.
-8. Generate target-native artifacts under `.agentx/output/capabilities/<id>/targets/<target-id>/`.
-9. Produce a conversion loss report with Preserved, Adapted, Degraded, Dropped, Manual Setup Required, and Risks sections.
+4. Ensure `intake.md`, `open-questions.md`, and `brief.md` all exist; write `open-questions.md` even when every question is resolved.
+5. Store source provenance and summaries under `intake.md` and `sources/`.
+6. Identify source runtime, source artifact types, scripts, references, commands, tools, rules, assets, and install assumptions.
+7. Create or update `brief.md` with a capability map and conversion status for each mapped item.
+8. Read every requested `targets/<target-id>/` profile before generating artifacts.
+9. Generate target-native artifacts under `.agentx/output/capabilities/<id>/targets/<target-id>/`.
+10. For skill-package targets, put the runtime package root under the target id, for example `.agentx/output/capabilities/<id>/targets/codex/<skill-id>/SKILL.md`.
+11. Produce a conversion loss report with Preserved, Adapted, Degraded, Dropped, Manual Setup Required, and Risks sections.
 
 When a target has an official creator baseline:
 

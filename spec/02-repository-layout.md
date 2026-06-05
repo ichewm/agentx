@@ -54,7 +54,9 @@ Reason: AgentX is loaded from this repository before the user starts a capabilit
         sources/
         targets/
           codex/
+            <skill-id>/
           claude-code/
+            <skill-id>/
           cursor/
         reviews/
         install/
@@ -95,6 +97,7 @@ Every generated capability must be grouped by capability id.
   sources/
   targets/
     <target-id>/
+      <target-native-package-root>/
   reviews/
     semantic-review.md
     portability-review.md
@@ -108,7 +111,7 @@ Every generated capability must be grouped by capability id.
   lock.json
 ```
 
-Target artifacts must be ready to copy, install, or export without requiring the AI to reconstruct file layout.
+Target artifacts must be ready to copy, install, or export without requiring the AI to reconstruct file layout. When a target's native format is a skill package directory, the generated output must include that package directory under the target id, for example `.agentx/output/capabilities/<id>/targets/codex/<skill-id>/SKILL.md`.
 
 ## Legacy Code
 
